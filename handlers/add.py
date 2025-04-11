@@ -9,14 +9,12 @@ from aiogram import F
 from script.napominalka import napominalka_update
 
 
-
 class Form_task(StatesGroup):
-    id=State()
-    task=State()
-    time=State()
-    type=State()
-    date=State()
-
+    id = State()
+    task = State()
+    time = State()
+    type = State()
+    date = State()
 
 
 @router.message(F.text == "Добавить напоминалку")
@@ -33,32 +31,24 @@ async def get_task(message: Message, state: FSMContext):
     await state.set_state(Form_task.time)
     await message.answer('Теперь введите время, когда будет приходить сообщение')
 
-@router.message(Form_task.task)
+
+@router.message(Form_task.time)
 async def get_time(message: Message, state: FSMContext):
-    await state.update_data(task=message.time)
+    await state.update_data(task=message.text)
     await state.set_state(Form_task.type)
-    builder = ReplyKeyboardBuilder()
-    for button in kb_type:
-        builder.add(button)
-    builder.adjust(2)
-    await message.answer('Теперь выберите формат отправки сообщения',
-                        reply_markup=builder.as_markup(resize_keyboard=True))
+    await message.answer('Теперь выберите формат отправки сообщения')
+
 
 @router.message(Form_task.type)
 async def get_type(message: Message, state: FSMContext):
-    await state.update_data(task=message.type)
+    await state.update_data(task=message.text)
     await state.set_state(Form_task.type)
-    if message.text != 'Ежедневно':
-        await message.answer('Введите дни')
+    await message.answer('Введите дни')
 
-        @router.message(Form_task.type)
-        async def get_type(message: Message, state: FSMContext):
-            await state.update_data(task=message.type)
-            await state.set_state(Form_task.date)
-            if message.answer == 'Ежедневно':
-                await message.answer('Ваша напоминалка готова!')
-    else:
-        await message.answer("Готово!")
-
-
+@router.message(Form_task.type)
+async def get_type(message: Message, state: FSMContext):
+    await state.update_data(task=message.text)
+    await state.set_state(Form_task.date)
+    if message.answer == 'Ежедневно':
+        await message.answer('Ваша напоминалка готова!')
 
