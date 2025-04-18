@@ -76,6 +76,7 @@ async def get_date(message: Message, state: FSMContext):
             await state.update_data(days=message.text)
         else:
             await state.update_data(days='None')
+            
         data = await state.get_data()
         id = data['id']
         task = data['task']
