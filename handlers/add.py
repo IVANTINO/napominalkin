@@ -42,56 +42,75 @@ async def get_time(message: Message, state: FSMContext):
 
 @router.message(Form_task.type)
 async def get_type(message: Message, state: FSMContext):
-    global ev, week, one
-    ev = False
-    week = False
-    one = False
+    print(354354)
     type_mes = message.text
-    await state.update_data(type=message.text)
     await state.set_state(Form_task.date)
-    if type_mes == 'Ежедневно':
-        ev = True
-        await state.set_state(Form_task.date)
+    await state.update_data(type=message.text)
     if type_mes == 'В определённый день недели':
-        await state.set_state(Form_task.days)
         await message.answer('Выберете дни недели')  # здесь должна быть клавиатура
+
     if type_mes == 'В один определённый день':
-        await state.set_state(Form_task.date)
         await message.answer('Выберете день')  # здесь должна быть клавиатура
+        await state.set_state(Form_task.date)
+    if type_mes == 'Ежедневно':
+        data = await state.get_data()
+        if data['type'] == 'Ежедневно':
+            await state.update_data(type='Ежедневно')
+            data['days'] = '_'
+            data['date'] = '_'
+            id = data['id']
+            task = data['task']
+            time = data['time']
+            type = data['type']
+            date = data['date']
+            days = data['days']
+
+            user_id = message.from_user.id
+            task_id = scheduler.add_job(napominalka_update,
+                                        trigger='interval',
+                                        seconds=2,
+                                        kwargs={'user_id': user_id, 'bot': bot})
+            id_task = task_id.id
+            cursor.execute('INSERT INTO users (id, task, time, type, date, days, id_task) VALUES (?,?,?,?,?,?,?)',
+                           (id, task, time, type, date, days, id_task))
+            con.commit()
+            await state.clear()
+            await message.answer('Ваша напоминалка готова!')
 
 
 
 @router.message(Form_task.date)
 async def get_date(message: Message, state: FSMContext):
-    if message.text == 'В один определённый день':
-        await state.update_data(date=message.text)
-        await state.set_state(Form_task.days)
-    else:
-        await state.update_data(date='None')
-        await state.set_state(Form_task.days)
+    data = await state.get_data()
+    print(data)
+    data['kek'] = 234
 
-    @router.message(Form_task.days)
-    async def get_type(message: Message, state: FSMContext):
-        if message.text == 'В определённый день недели':
-            await state.update_data(days=message.text)
-        else:
-            await state.update_data(days='None')
-            
-        data = await state.get_data()
-        id = data['id']
-        task = data['task']
-        time = data['time']
-        type = data['type']
-        date = data['date']
-        days = data['days']
-        await state.clear()
-        user_id = message.from_user.id
-        task_id = scheduler.add_job(napominalka_update,
-                                    trigger='interval',
-                                    seconds=2,
-                                    kwargs={'user_id': user_id, 'bot': bot})
-        id_task = task_id.id
-        cursor.execute('INSERT INTO users (id, task, time, type, date, days, id_task) VALUES (?,?,?,?,?,?,?)',
-                       (id, task, time, type, date, days, id_task))
-        con.commit()
-        await message.answer('Ваша напоминалка готова!')
+    if data['type'] == 'Ежедневно':
+        await state.update_data(type='Ежедневно')
+        data['days'] = '_'
+        data['date'] = '_'
+
+    if data['type'] == 'В определённый день недели':
+        await state.update_data(days=message.text)
+        data['date']='_'
+
+    if data['type'] == 'В один определённый день':
+        await state.update_data(date=message.text)
+        data['days'] = '_'
+    id = data['id']
+    task = data['task']
+    time = data['time']
+    type = data['type']
+    date = data['date']
+    days = data['days']
+    user_id = message.from_user.id
+    task_id = scheduler.add_job(napominalka_update,
+                                trigger='interval',
+                                seconds=2,
+                                kwargs={'user_id': user_id, 'bot': bot})
+    id_task = task_id.id
+    cursor.execute('INSERT INTO users (id, task, time, type, date, days, id_task) VALUES (?,?,?,?,?,?,?)',
+                   (id, task, time, type, date, days, id_task))
+    await state.clear()
+    con.commit()
+    await message.answer('Ваша напоминалка готова!')
