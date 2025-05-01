@@ -3,7 +3,7 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message
 from aiogram import types
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
-from keys.key import kb_start, kb_type
+from keys.key import kb_start, kb_type, kb_days
 from loader import router, cursor, con, scheduler, bot
 from aiogram import F
 from script.napominalka import napominalka_update
@@ -37,7 +37,13 @@ async def get_task(message: Message, state: FSMContext):
 async def get_time(message: Message, state: FSMContext):
     await state.update_data(time=message.text)
     await state.set_state(Form_task.type)
-    await message.answer('Теперь выберите формат отправки сообщения')  # здесь должна быть клавиатура
+    builder = ReplyKeyboardBuilder()
+    for button in kb_type:
+        builder.add(button)
+    builder.adjust(1)
+    await message.answer(
+        text='Теперь выбери формат отправки сообщения.',
+        reply_markup=builder.as_markup(resize_keyboard=True))
 
 
 @router.message(Form_task.type)
@@ -47,10 +53,17 @@ async def get_type(message: Message, state: FSMContext):
     await state.set_state(Form_task.date)
     await state.update_data(type=message.text)
     if type_mes == 'В определённый день недели':
-        await message.answer('Выберете дни недели')  # здесь должна быть клавиатура
+        builder = ReplyKeyboardBuilder()
+        for button in kb_days:
+            builder.add(button)
+        builder.adjust(1)
+        await message.answer(
+            text='Выберете дни недели.',
+            reply_markup=builder.as_markup(resize_keyboard=True))
+
 
     if type_mes == 'В один определённый день':
-        await message.answer('Выберете день')  # здесь должна быть клавиатура
+        await message.answer('Выберете день')
         await state.set_state(Form_task.date)
     if type_mes == 'Ежедневно':
         data = await state.get_data()
