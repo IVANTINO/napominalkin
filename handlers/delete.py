@@ -13,7 +13,7 @@ async def handle_message(message: Message):
     if data:
         id_task = data[0][0]
         scheduler.remove_job(id_task)
-        cursor.execute('DELETE FROM users  WHERE id=(?)', (user_id,))
+        cursor.execute('DELETE * FROM users  WHERE id=(?)', (user_id,))
         con.commit()
         await message.answer(text='Всё её больше нет(')
 

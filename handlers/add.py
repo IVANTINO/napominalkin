@@ -81,15 +81,20 @@ async def get_type(message: Message, state: FSMContext):
             user_id = message.from_user.id
             task_id = scheduler.add_job(napominalka_update,
                                         trigger='interval',
-                                        seconds=2,
-                                        kwargs={'user_id': user_id, 'bot': bot})
+                                        seconds=30,
+                                        kwargs={'user_id': user_id, 'bot': bot, 'message': Message})
             id_task = task_id.id
             cursor.execute('INSERT INTO users (id, task, time, type, date, days, id_task) VALUES (?,?,?,?,?,?,?)',
                            (id, task, time, type, date, days, id_task))
             con.commit()
             await state.clear()
-            await message.answer('Ваша напоминалка готова!')
+            builder = ReplyKeyboardBuilder()
+            for button in kb_start:
+                builder.add(button)
 
+            builder.adjust(1)
+            await message.answer('Ваша напоминалка готова!',
+                                 reply_markup=builder.as_markup(resize_keyboard=True))
 
 
 @router.message(Form_task.date)
@@ -100,30 +105,43 @@ async def get_date(message: Message, state: FSMContext):
 
     if data['type'] == 'Ежедневно':
         await state.update_data(type='Ежедневно')
-        data['days'] = '_'
-        data['date'] = '_'
 
     if data['type'] == 'В определённый день недели':
         await state.update_data(days=message.text)
-        data['date']='_'
+
 
     if data['type'] == 'В один определённый день':
         await state.update_data(date=message.text)
-        data['days'] = '_'
+
     id = data['id']
     task = data['task']
     time = data['time']
     type = data['type']
-    date = data['date']
-    days = data['days']
+    if type=='Ежедневно' or type=='В определённый день недели':
+        date = '_'
+        data['days']=message.text
+    else:
+        date = data['date']
+    if type=='Ежедневно' or type=='В один определённый день':
+        days = '_'
+        date=message.text
+    else:
+        days = data['days']
     user_id = message.from_user.id
     task_id = scheduler.add_job(napominalka_update,
                                 trigger='interval',
-                                seconds=2,
-                                kwargs={'user_id': user_id, 'bot': bot})
+                                seconds=30,
+                                kwargs={'user_id': user_id, 'bot': bot, 'message': Message})
     id_task = task_id.id
     cursor.execute('INSERT INTO users (id, task, time, type, date, days, id_task) VALUES (?,?,?,?,?,?,?)',
                    (id, task, time, type, date, days, id_task))
     await state.clear()
     con.commit()
-    await message.answer('Ваша напоминалка готова!')
+    builder = ReplyKeyboardBuilder()
+    for button in kb_start:
+        builder.add(button)
+
+    builder.adjust(1)
+
+    await message.answer('Ваша напоминалка готова!',
+                         reply_markup=builder.as_markup(resize_keyboard=True))
