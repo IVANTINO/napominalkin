@@ -1,5 +1,6 @@
-import requests
 from datetime import datetime
+from os.path import split
+
 from aiogram.types import WebAppInfo
 from aiogram.types import Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -10,9 +11,19 @@ from loader import *
 
 
 async def napominalka_update(user_id, bot, message):
-    cursor.execute(f'SELECT * FROM users where id = (?)', [user_id])
-    cursor.fetchall()
-    now_hour=datetime.time().hour
+    print(1)
+    cursor.execute(f'SELECT time FROM users where id = (?)', [user_id])
+    a=cursor.fetchall()
+
+
+
+
+
+
+
+
+
+
 
 
 

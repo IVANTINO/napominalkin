@@ -1,3 +1,5 @@
+from os.path import split
+
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message
@@ -30,20 +32,30 @@ async def handle_message(message: Message, state: FSMContext):
 async def get_task(message: Message, state: FSMContext):
     await state.update_data(task=message.text)
     await state.set_state(Form_task.time)
-    await message.answer('Теперь введите время, когда будет приходить сообщение')
+    await message.answer('Теперь введите время, когда будет приходить сообщение(Время должно быть написанно в формате ЧЧ:ММ)')
 
 
 @router.message(Form_task.time)
 async def get_time(message: Message, state: FSMContext):
-    await state.update_data(time=message.text)
-    await state.set_state(Form_task.type)
-    builder = ReplyKeyboardBuilder()
-    for button in kb_type:
-        builder.add(button)
-    builder.adjust(1)
-    await message.answer(
-        text='Теперь выбери формат отправки сообщения.',
-        reply_markup=builder.as_markup(resize_keyboard=True))
+    dvo=message.text.find(":")-1
+    print(dvo)
+    if 6>len(message.text)>4:
+        if dvo==1:
+            print(message.text.find(":"))
+            await state.update_data(time=message.text)
+            await state.set_state(Form_task.type)
+            builder = ReplyKeyboardBuilder()
+            for button in kb_type:
+                builder.add(button)
+            builder.adjust(1)
+            await message.answer(
+                text='Теперь выбери формат отправки сообщения.',
+                reply_markup=builder.as_markup(resize_keyboard=True))
+        else:
+            await message.answer(text="Вы не поставили двоеточие(:)")
+    else:
+        await message.answer(text="Неверный формат")
+
 
 
 @router.message(Form_task.type)

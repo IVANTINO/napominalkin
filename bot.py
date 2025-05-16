@@ -1,15 +1,18 @@
 import logging
 import asyncio
 from loader import *
-from datetime import datetime
+from script.task_update import task_update
 
 import handlers.start
 import handlers.add
 
 
 async def main():
+
     scheduler.start()
     await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
+
+    await task_update()
 
 
 
