@@ -1,10 +1,20 @@
 from  loader import cursor, bot, scheduler, con
 from script.napominalka import napominalka_update
 
-async def task_update(user_id, message):
-    cursor.execute("SELECT id, id_task FROM users")
-    cursor.fetchall()
+def task_update():
+    cursor.execute("SELECT * FROM users")
+    data=cursor.fetchall()
+    user_id=data[0][0][0]
 
-    scheduler.start()
+    for user in data:
+        task_id = scheduler.add_job(napominalka_update,
+                                    trigger='cron',
+                                    hour=19,
+                                    minute=47,
+                                    kwargs=user_id)
+
+
+
+
 
 

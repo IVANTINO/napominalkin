@@ -10,9 +10,10 @@ import handlers.add
 async def main():
 
     scheduler.start()
+    task_update()
     await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
 
-    await task_update()
+
 
 
 
