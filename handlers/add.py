@@ -92,8 +92,9 @@ async def get_type(message: Message, state: FSMContext):
 
             user_id = message.from_user.id
             task_id = scheduler.add_job(napominalka_update,
-                                        trigger='interval',
-                                        seconds=30,
+                                        trigger='cron',
+                                        hour =10,
+                                        minute=30,
                                         kwargs={'user_id': user_id, 'bot': bot, 'message': Message})
             id_task = task_id.id
             cursor.execute('INSERT INTO users (id, task, time, type, date, days, id_task) VALUES (?,?,?,?,?,?,?)',
